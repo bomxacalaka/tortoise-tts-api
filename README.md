@@ -1,3 +1,76 @@
+# This is a ready to run API of tts, where you can download any speech with a GET http://localhost:5000/tts?text=hello
+Only reason for this repo to exist is to explain how it works and if you want to change the docker img API, its on tortoise/flask-api.py, the docker runs serve.sh every time its started. This is my first proper docker img.
+
+# Method 1, pull from hub:
+
+Download Docker and run these commands.
+```
+docker pull europe-west2-docker.pkg.dev/lango2lang-5d4c3/app-containers-repo/drbom/tts2:0.0
+docker run --name ttscontainer -p 5000:5000 --gpus all -e TORTOISE_MODELS_DIR=/models -v /mnt/user/data/tortoise_tts/models:/models -v /mnt/user/data/tortoise_tts/results:/results -v /mnt/user/data/.cache/huggingface:/root/.cache/huggingface -v /root:/work -it europe-west2-docker.pkg.dev/lango2lang-5d4c3/app-containers-repo/drbom/tts2:0.0
+```
+
+# Method 2, build from git repo:
+```
+git clone https://github.com/bomxacalaka/tortoise-tts-api
+cd tortoise-tts-api
+download_models.bat
+docker build -t tortoise-tts:0.0 .
+docker run --name ttscontainer -p 5000:5000 --gpus all -e TORTOISE_MODELS_DIR=/models -v /mnt/user/data/tortoise_tts/models:/models -v /mnt/user/data/tortoise_tts/results:/results -v /mnt/user/data/.cache/huggingface:/root/.cache/huggingface -v /root:/work -it tortoise-tts:0.0
+```
+
+# Three important things to be aware of:
+
+# 1. This is what a successful deployment should look like:
+![image](https://github.com/bomxacalaka/tortoise-tts-api/assets/98621928/f3929dc9-77ba-4c13-b5b1-bef373581d06)
+
+http://localhost:5000/
+
+![image](https://github.com/bomxacalaka/tortoise-tts-api/assets/98621928/917a6b81-62d7-4362-8ee6-ec3885f7d0a4)
+
+You can test it:
+
+![image](https://github.com/bomxacalaka/tortoise-tts-api/assets/98621928/4fc22e6f-5079-4a9a-8d12-007e4f67c8d8)
+
+A file gets downloaded from git to docker to browser.
+
+You can request a speech:
+
+![image](https://github.com/bomxacalaka/tortoise-tts-api/assets/98621928/567bb197-8b40-4ad5-97dd-006b7922d569)
+
+If you click on sample it will send a ?text=hi to /tts like this http://localhost:5000/tts?text=hi and if you have enough RAM like I dont, your browser will download an audio file with a man saying "hi"(in theory).
+
+# 2. Release some used space.
+
+![image](https://github.com/bomxacalaka/tortoise-tts-api/assets/98621928/fe37448e-9363-452f-8dad-87b28e4f024c)
+
+I like to fix that by purging all the virtual stuff from docker:
+
+![image](https://github.com/bomxacalaka/tortoise-tts-api/assets/98621928/cf521346-6682-48c2-967e-95703669839d)
+
+![image](https://github.com/bomxacalaka/tortoise-tts-api/assets/98621928/4526efea-a8f9-44e3-aafc-78c6f60b9d21)
+
+
+# 3. Fix VmmemWSL devouring your RAM.
+
+![image](https://github.com/bomxacalaka/tortoise-tts-api/assets/98621928/b26ad2ca-5f20-4573-bd8e-f512c33809b2)
+
+I solved it by shutting it down if I'm not using it, or limiting the max RAM.
+
+To shutdown run `wsl --shutdown`
+
+To limit default max ram, create a file called `.wslconfig` in your user folder like C:\Users\<your name> and write to it:
+
+```
+[wsl2]
+memory=2GB
+```
+
+
+
+# The rest of this readme is from the original readme I forked.
+
+
+
 # TorToiSe
 
 Tortoise is a text-to-speech program built with the following priorities:
