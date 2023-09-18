@@ -1,34 +1,53 @@
-FROM nvidia/cuda:12.2.0-base-ubuntu22.04
+FROM drbom/tts:0.8
+
 
 COPY . /app
-
-RUN apt-get update && \
-    apt-get install -y --allow-unauthenticated --no-install-recommends \
-    wget \
-    git \
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
-
-ENV HOME "/root"
-ENV CONDA_DIR "${HOME}/miniconda"
-ENV PATH="$CONDA_DIR/bin":$PATH
-ENV CONDA_AUTO_UPDATE_CONDA=false
-ENV PIP_DOWNLOAD_CACHE="$HOME/.pip/cache"
-ENV TORTOISE_MODELS_DIR
-
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda3.sh \
-    && bash /tmp/miniconda3.sh -b -p "${CONDA_DIR}" -f -u \
-    && "${CONDA_DIR}/bin/conda" init bash \
-    && rm -f /tmp/miniconda3.sh \
-    && echo ". '${CONDA_DIR}/etc/profile.d/conda.sh'" >> "${HOME}/.profile"
-
+ADD . /app
 # --login option used to source bashrc (thus activating conda env) at every RUN statement
 SHELL ["/bin/bash", "--login", "-c"]
 
-RUN conda create --name tortoise python=3.9 numba inflect \
-    && conda activate tortoise \
-    && conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia \
-    && conda install transformers=4.29.2 \
-    && cd /app \
-    && python setup.py install
+# pip install gevent
+RUN conda activate tortoise \
+    && pip install gevent
+    
+
+
+COPY serve.sh ./
+RUN chmod +x serve.sh
+SHELL ["/bin/bash", "-c"]
+WORKDIR /app
+
+
+
+# Activate the environment toroise and run the server.sh script
+ENTRYPOINT ["./serve.sh"]
+
+
+# docker rm ttscontainer & docker image rmi drbom/tts2:0.0 & docker build . -t drbom/tts2:0.0
+
+# docker run --name ttscontainer -p 5000:5000 --gpus all -e TORTOISE_MODELS_DIR=/models -v /mnt/user/data/tortoise_tts/models:/models -v /mnt/user/data/tortoise_tts/results:/results -v /mnt/user/data/.cache/huggingface:/root/.cache/huggingface -v /root:/work -it europe-west2-docker.pkg.dev/lango2lang-5d4c3/app-containers-repo/drbom/tts2:0.0
+
+# docker image rmi drbom/tts2:0.0
+
+# docker build . -t drbom/tts2:0.0
+
+# conda activate tortoise
+
+# gunicorn --chdir tortoise  -b :5000 flask-api:app
+
+# docker rm ttscontainer
+
+
+# Full deployment commands:
+
+# docker build -t europe-west2-docker.pkg.dev/lango2lang-5d4c3/app-containers-repo/drbom/tts2:0.0 .
+
+# docker push europe-west2-docker.pkg.dev/lango2lang-5d4c3/app-containers-repo/drbom/tts2:0.0
+
+# gcloud container clusters create tts-api --zone europe-west1-b --num-nodes 1
+
+# kubectl create deployment tts-api-deployment --image=europe-west2-docker.pkg.dev/lango2lang-5d4c3/app-containers-repo/drbom/tts2
+
+# kubectl expose deployment tts-api-deployment --type=LoadBalancer --port 80 --target-port 5000
+
+# kubectl get all 
