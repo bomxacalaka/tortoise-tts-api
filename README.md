@@ -1,4 +1,5 @@
-# This is a ready to run API of tts, where you can download any speech with a GET http://localhost:5000/tts?text=hello
+# This is a ready to run API of tts by accessing: http://localhost:5000/tts?text=hello
+
 Only reason for this repo to exist is to explain how it works and if you want to change the docker img API, its on tortoise/flask-api.py, the docker runs serve.sh every time its started. This is my first proper docker img.
 
 # Method 1, pull from hub:
